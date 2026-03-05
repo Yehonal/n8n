@@ -220,6 +220,7 @@ export class NodeTestHarness {
 			// Get from node.parameters
 			currentNodeParameters: undefined,
 			parentCallbackManager: undefined,
+			ssrfBridge: undefined,
 		});
 		additionalData.credentialsHelper = credentialsHelper;
 
