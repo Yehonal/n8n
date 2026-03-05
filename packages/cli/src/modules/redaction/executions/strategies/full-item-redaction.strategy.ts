@@ -1,5 +1,10 @@
 import { Service } from '@n8n/di';
-import type { INodeExecutionData, ITaskDataConnections } from 'n8n-workflow';
+import type {
+	ExecutionError,
+	INodeExecutionData,
+	IRedactedErrorInfo,
+	ITaskDataConnections,
+} from 'n8n-workflow';
 
 import type { RedactableExecution } from '@/executions/execution-redaction';
 
@@ -27,7 +32,17 @@ export class FullItemRedactionStrategy implements IExecutionRedactionStrategy {
 				if (taskData.inputOverride) {
 					this.redactConnections(taskData.inputOverride, reason);
 				}
+				if (taskData.error) {
+					taskData.redactedError = this.redactError(taskData.error);
+					delete taskData.error;
+				}
 			}
+		}
+
+		const resultData = execution.data.resultData;
+		if (resultData.error) {
+			resultData.redactedError = this.redactError(resultData.error);
+			delete resultData.error;
 		}
 
 		execution.data.redactionInfo = {
@@ -54,6 +69,28 @@ export class FullItemRedactionStrategy implements IExecutionRedactionStrategy {
 	private redactItem(item: INodeExecutionData, reason: string): void {
 		item.json = {};
 		delete item.binary;
-		item.redaction = { redacted: true, reason };
+
+		const redactedError = item.error ? this.redactError(item.error) : undefined;
+		delete item.error;
+
+		item.redaction = {
+			redacted: true,
+			reason,
+			...(redactedError !== undefined && { error: redactedError }),
+		};
+	}
+
+	/**
+	 * Extracts safe, non-PII technical metadata from any execution error.
+	 * Preserves: error name (type classification), HTTP status code from NodeApiError.
+	 * Omits: message, description, cause, context — may contain PII or credential data.
+	 */
+	private redactError(error: ExecutionError): IRedactedErrorInfo {
+		const result: IRedactedErrorInfo = { type: error.name };
+		if (error.name === 'NodeApiError') {
+			result.httpCode =
+				('httpCode' in error ? (error as { httpCode: string | null }).httpCode : null) ?? null;
+		}
+		return result;
 	}
 }
