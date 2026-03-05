@@ -9,6 +9,7 @@ import { useWorkflowDocumentMeta } from './workflowDocument/useWorkflowDocumentM
 import { useWorkflowDocumentPinData } from './workflowDocument/useWorkflowDocumentPinData';
 import { useWorkflowDocumentTags } from './workflowDocument/useWorkflowDocumentTags';
 import { useWorkflowDocumentTimestamps } from './workflowDocument/useWorkflowDocumentTimestamps';
+import { useWorkflowDocumentViewport } from './workflowDocument/useWorkflowDocumentViewport';
 
 export {
 	getPinDataSize,
@@ -57,6 +58,7 @@ export function useWorkflowDocumentStore(id: WorkflowDocumentId) {
 		const workflowDocumentTags = useWorkflowDocumentTags();
 		const workflowDocumentPinData = useWorkflowDocumentPinData();
 		const workflowDocumentTimestamps = useWorkflowDocumentTimestamps();
+		const workflowDocumentViewport = useWorkflowDocumentViewport();
 
 		return {
 			workflowId,
@@ -68,6 +70,7 @@ export function useWorkflowDocumentStore(id: WorkflowDocumentId) {
 			...workflowDocumentTags,
 			...workflowDocumentPinData,
 			...workflowDocumentTimestamps,
+			...workflowDocumentViewport,
 		};
 	})();
 }
